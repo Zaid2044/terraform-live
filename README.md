@@ -9,15 +9,25 @@ This project demonstrates how to design, provision, secure, and automate AWS inf
 ## 📌 Project Highlights
 
 ✅ Reusable Terraform Modules
+
 ✅ Remote State Management (S3)
+
 ✅ State Locking (DynamoDB)
+
 ✅ GitHub OIDC Authentication
+
 ✅ Pull Request Validation
+
 ✅ Automated Deployment on Merge
+
 ✅ Manual Infrastructure Destruction
+
 ✅ Environment-Based Infrastructure Layout
+
 ✅ Cross-Stack Dependencies using Remote State
+
 ✅ Zero Long-Lived AWS Credentials
+
 
 ---
 
@@ -150,9 +160,8 @@ ec2/terraform.tfstate
 
 ## 🔄 CI/CD Pipeline
 
-![Workflow](docs/images/pr-validation-success.png)
-![Workflow](docs/images/terraform-apply-success.png)
-![Workflow](docs/images/terraform-destory-success.png)
+![Workflow](docs/images/workflow.png)
+
 
 ### Pull Request Workflow
 
