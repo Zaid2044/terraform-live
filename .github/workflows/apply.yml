@@ -10,20 +10,81 @@ permissions:
   contents: read
 
 jobs:
-  apply:
+  apply-vpc:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        stack:
-          - vpc
-          - sg
-          - iam
-          - ec2
 
     defaults:
       run:
-        working-directory: environments/dev/${{ matrix.stack }}
+        working-directory: environments/dev/vpc
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ap-south-1
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - run: terraform init
+
+      - run: terraform apply -auto-approve
+
+  apply-sg:
+    runs-on: ubuntu-latest
+
+    needs: apply-vpc
+
+    defaults:
+      run:
+        working-directory: environments/dev/sg
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ap-south-1
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - run: terraform init
+
+      - run: terraform apply -auto-approve
+
+  apply-iam:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: environments/dev/iam
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ap-south-1
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - run: terraform init
+
+      - run: terraform apply -auto-approve
+
+  apply-ec2:
+    runs-on: ubuntu-latest
+
+    needs:
+      - apply-sg
+      - apply-iam
+
+    defaults:
+      run:
+        working-directory: environments/dev/ec2
 
     steps:
       - uses: actions/checkout@v4

@@ -45,7 +45,7 @@ data "aws_ami" "amazon_linux" {
 }
 
 module "ec2" {
-  source = "git::https://github.com/Zaid2044/terraform-aws-ec2.git?ref=v1.0.0"
+  source = "git::https://github.com/Zaid2044/terraform-aws-ec2.git?ref=v1.0.1"
 
   project     = "platform"
   environment = "dev"
