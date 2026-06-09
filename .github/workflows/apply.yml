@@ -1,0 +1,40 @@
+name: Terraform Apply
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        stack:
+          - vpc
+          - sg
+          - iam
+          - ec2
+
+    defaults:
+      run:
+        working-directory: environments/dev/${{ matrix.stack }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ap-south-1
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - run: terraform init
+
+      - run: terraform apply -auto-approve
