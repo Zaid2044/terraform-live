@@ -38,8 +38,8 @@ module "web_sg" {
   egress_rules = [
     {
       description = "All outbound"
-      from_port   = 0
-      to_port     = 0
+      from_port   = -1
+      to_port     = -1
       protocol    = "-1"
       cidr_ipv4   = "0.0.0.0/0"
     }
