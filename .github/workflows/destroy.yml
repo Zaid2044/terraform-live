@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       stack:
-        description: Stack to destroy
+        description: Destroy in dependency order (ec2 → iam → sg → vpc)
         required: true
         type: choice
         options:
