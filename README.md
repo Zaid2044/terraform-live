@@ -8,7 +8,7 @@ The project provisions AWS infrastructure through reusable Terraform modules whi
 
 ## Architecture
 
-![Architecture](docs/architecture-diagram.png)
+![Architecture](images/architecture-diagram.png)
 
 ---
 
@@ -55,25 +55,25 @@ The project provisions AWS infrastructure through reusable Terraform modules whi
 
 Automatically validates and generates execution plans across all environments.
 
-![Terraform Plan](docs/plan-workflow.png)
+![Terraform Plan](images/plan-workflow.png)
 
 ### Terraform Apply
 
 Manual deployment workflow with environment selection.
 
-![Terraform Apply](docs/apply-workflow.png)
+![Terraform Apply](images/apply-workflow.png)
 
 ### Production Approval
 
 Production deployments require explicit approval before execution.
 
-![Production Approval](docs/prod-approve.png)
+![Production Approval](images/prod-approve.png)
 
 ### Terraform Destroy
 
 Protected infrastructure destruction workflow with confirmation controls.
 
-![Terraform Destroy](docs/destroy-workflow.png)
+![Terraform Destroy](images/destroy-workflow.png)
 
 ---
 
@@ -84,7 +84,7 @@ Terraform state is centrally managed using:
 - Amazon S3 Backend
 - DynamoDB State Locking
 
-![Backend](docs/S3-Backend-bucket.png)
+![Backend](images/S3-Backend-bucket.png)
 
 ---
 
