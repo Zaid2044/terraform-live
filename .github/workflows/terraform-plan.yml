@@ -1,0 +1,74 @@
+name: Terraform Plan
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        environment:
+          - dev
+          - stage
+          - prod
+
+    defaults:
+      run:
+        working-directory: env/${{ matrix.environment }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Install Vault CLI
+        run: |
+          wget -q https://releases.hashicorp.com/vault/1.20.0/vault_1.20.0_linux_amd64.zip
+          unzip vault_1.20.0_linux_amd64.zip
+          sudo mv vault /usr/local/bin/
+          vault version
+
+      - name: Login to Vault
+        env:
+          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+          VAULT_ROLE_ID: ${{ secrets.VAULT_ROLE_ID }}
+          VAULT_SECRET_ID: ${{ secrets.VAULT_SECRET_ID }}
+        run: |
+          export VAULT_SKIP_VERIFY=true
+
+          TOKEN=$(vault write -format=json auth/approle/login \
+            role_id="$VAULT_ROLE_ID" \
+            secret_id="$VAULT_SECRET_ID" | jq -r '.auth.client_token')
+
+          echo "VAULT_TOKEN=$TOKEN" >> $GITHUB_ENV
+
+      - name: Fetch AWS Credentials
+        env:
+          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+          VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
+        run: |
+          export VAULT_SKIP_VERIFY=true
+
+          ACCESS_KEY=$(vault kv get -format=json secret/aws | jq -r '.data.data.access_key')
+          SECRET_KEY=$(vault kv get -format=json secret/aws | jq -r '.data.data.secret_key')
+
+          echo "AWS_ACCESS_KEY_ID=$ACCESS_KEY" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=$SECRET_KEY" >> $GITHUB_ENV
+
+      - name: Terraform Init
+        run: terraform init -reconfigure
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -input=false
