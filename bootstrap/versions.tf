@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.8.0"
+  required_version = ">= 1.6.0"
 
   required_providers {
     aws = {
@@ -9,6 +9,29 @@ terraform {
   }
 }
 
+provider "vault" {
+  address = var.vault_addr
+
+  skip_child_token = true
+
+  auth_login {
+    path = "auth/approle/login"
+
+    parameters = {
+      role_id   = var.vault_role_id
+      secret_id = var.vault_secret_id
+    }
+  }
+}
+
+data "vault_kv_secret_v2" "aws" {
+  mount = "secret"
+  name  = "aws"
+}
+
 provider "aws" {
   region = var.aws_region
+
+  access_key = data.vault_kv_secret_v2.aws.data["access_key"]
+  secret_key = data.vault_kv_secret_v2.aws.data["secret_key"]
 }

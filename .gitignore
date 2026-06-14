@@ -1,5 +1,6 @@
 # Terraform
 .terraform/
+.terraform.lock.hcl
 
 # State files
 *.tfstate
@@ -33,33 +34,6 @@ terraform.rc
 .vscode/
 .idea/
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# TFLint
-.tflint.hcl
-
-# Checkov
-.checkov/
-
-# tfsec
-.tfsec/
-
-# Terragrunt
-.terragrunt-cache/
-
-# Testing
-test-results/
-
 # Environment files
 .env
 .env.*
-
-# Local examples state
-examples/**/.terraform/
-examples/**/*.tfstate
-examples/**/*.tfstate.*

@@ -1,9 +1,11 @@
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = var.bucket_name
+  bucket = var.state_bucket_name
+
   tags = {
-    Name      = var.bucket_name
-    ManagedBy = "Terraform"
-    Purpose   = "TerraformState"
+    Name        = var.state_bucket_name
+    Project     = var.project
+    Environment = var.environment
+    ManagedBy   = "Terraform"
   }
 }
 
@@ -29,13 +31,13 @@ resource "aws_s3_bucket_public_access_block" "terraform_state" {
   bucket = aws_s3_bucket.terraform_state.id
 
   block_public_acls       = true
-  block_public_policy     = true
   ignore_public_acls      = true
+  block_public_policy     = true
   restrict_public_buckets = true
 }
 
 resource "aws_dynamodb_table" "terraform_lock" {
-  name         = var.dynamodb_table_name
+  name         = var.lock_table_name
   billing_mode = "PAY_PER_REQUEST"
 
   hash_key = "LockID"
@@ -44,25 +46,11 @@ resource "aws_dynamodb_table" "terraform_lock" {
     name = "LockID"
     type = "S"
   }
-}
 
-resource "aws_s3_bucket_ownership_controls" "terraform_state" {
-  bucket = aws_s3_bucket.terraform_state.id
-
-  rule {
-    object_ownership = "BucketOwnerEnforced"
-  }
-}
-
-resource "aws_s3_bucket_lifecycle_configuration" "terraform_state" {
-  bucket = aws_s3_bucket.terraform_state.id
-
-  rule {
-    id     = "state-version-cleanup"
-    status = "Enabled"
-
-    noncurrent_version_expiration {
-      noncurrent_days = 90
-    }
+  tags = {
+    Name        = var.lock_table_name
+    Project     = var.project
+    Environment = var.environment
+    ManagedBy   = "Terraform"
   }
 }
