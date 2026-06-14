@@ -1,0 +1,86 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to destroy"
+        required: true
+        type: choice
+        options:
+          - dev
+          - stage
+          - prod
+
+      confirmation:
+        description: 'Type DESTROY to continue'
+        required: true
+        type: string
+
+jobs:
+  destroy:
+    if: ${{ inputs.confirmation == 'DESTROY' }}
+
+    name: Destroy (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+
+    environment: ${{ inputs.environment }}
+
+    defaults:
+      run:
+        working-directory: env/${{ inputs.environment }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq unzip
+
+      - name: Install Vault CLI
+        run: |
+          wget -q https://releases.hashicorp.com/vault/1.20.0/vault_1.20.0_linux_amd64.zip
+          unzip -o vault_1.20.0_linux_amd64.zip
+          sudo mv vault /usr/local/bin/
+          vault version
+
+      - name: Authenticate to Vault and Retrieve AWS Credentials
+        env:
+          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+          VAULT_ROLE_ID: ${{ secrets.VAULT_ROLE_ID }}
+          VAULT_SECRET_ID: ${{ secrets.VAULT_SECRET_ID }}
+        run: |
+          export VAULT_SKIP_VERIFY=true
+
+          VAULT_TOKEN=$(vault write -format=json auth/approle/login \
+            role_id="$VAULT_ROLE_ID" \
+            secret_id="$VAULT_SECRET_ID" | jq -r '.auth.client_token')
+
+          ACCESS_KEY=$(VAULT_TOKEN=$VAULT_TOKEN vault kv get -format=json secret/aws \
+            | jq -r '.data.data.access_key')
+
+          SECRET_KEY=$(VAULT_TOKEN=$VAULT_TOKEN vault kv get -format=json secret/aws \
+            | jq -r '.data.data.secret_key')
+
+          printf "::add-mask::%s\n" "$VAULT_TOKEN"
+          printf "::add-mask::%s\n" "$ACCESS_KEY"
+          printf "::add-mask::%s\n" "$SECRET_KEY"
+
+          {
+            echo "AWS_ACCESS_KEY_ID=$ACCESS_KEY"
+            echo "AWS_SECRET_ACCESS_KEY=$SECRET_KEY"
+          } >> "$GITHUB_ENV"
+
+      - name: Terraform Init
+        run: terraform init -reconfigure
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve -input=false
