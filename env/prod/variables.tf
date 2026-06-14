@@ -15,7 +15,7 @@ variable "vpc_cidr" {
 }
 
 variable "availability_zones" {
-  type = list(string)
+  type = map(string)
 }
 
 variable "public_subnets" {
