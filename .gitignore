@@ -17,7 +17,6 @@ crash.*.log
 # Variable files (may contain secrets)
 *.auto.tfvars
 *.auto.tfvars.json
-terraform.tfvars
 terraform.tfvars.json
 
 # Override files
